@@ -1,0 +1,25 @@
+================================
+PROJECT:
+HEARTBEAT PERIOD:
+The heartbeat period should be fast enough that it can detect that a replica is down
+before the next request is sent. Otherwise the test script will error. According to the
+TA, it's easier to detect replicas being down by expecting a response from a broadcast PUT request. 
+
+RESTARTING REPLICAS:
+When a replica is spun back up, it should reach out to one of the replicas in its
+view to download their state. We haven't talked about/designed that yet. That's the 
+"Add a replica to another replica's view of the store" request in the assignment spec.
+
+VERSION NUMBERS:
+Returning the version number to the client in GET requests enables the client to tell the difference between versions of the value that it is receiving from the replica.
+Note! DELETE requests have a version # associated with them as well!
+================================
+
+================================
+CLASS:
+CONSISTENCY VS AVAILABILITY:
+If a system has network partitions, then you cannot guarantee both 
+strong consistency and availability, because strong consistency requires
+writing to all other replicas before responding to a client. And if there are
+network partitions, then the first replica will wait forever before responding
+to the client, and the client will time out.

@@ -1,0 +1,25 @@
+Attachments area
+
+exec_requests = [{id:#,cmd:{}}, ... ]
+db = [{key:value,id:0}
+buff_request = []
+counter = replica number
+
+
+def put_client( (key:value), (cmd:element list) ):
+	- Check if all cmd elements are in exec_requests
+		- If true: execute request, generate id number, add request to exec_requests, increment counter (by number of initial replicas), send ack to client, broadcast to other replicas via put_rep().
+		- If false: buffer request ( (key:val), (cmd:element list) ).
+	- Attempt to execute buffer requests until buffer has been traversed once without a single execution happening (bool)
+		- If buffered request is from a client: execute request, generate id number, add request to exec_requests, increment counter, remove from buffer, toggle bool, send ack, broadcast
+		- If buffered request is from a replica: execute request, add request to exec_requests, remove from buffer, toggle bool.
+
+
+def put_rep( (key:value), (cmd:element list), (id:#) ):
+	- Check if all cmd elements are in exec_requests
+		- If true: execute request, add request to exec_requests.
+		- If false: buffer request ( (key:value), (cmd:element list), (id:#) ).
+	- Attempt to execute buffer request until buffer has been traversed once without a single executiong happening (bool)
+		- If buffered request is from a client: execute request, generate id number, add request to exec_requests, increment counter, remove from buffer, toggle bool, send ack, broadcast
+		- If buffered request is from a replica: execute request, add request to exec_requests, remove from buffer, toggle bool.
+put_requests.txt

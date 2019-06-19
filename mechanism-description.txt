@@ -1,0 +1,15 @@
+Causal Dependency Tracking:
+-We elected to use explicit causal dependency lists to track the causal
+ dependencies of requests. (USE DESCRIPTION FROM SPEC SHEET)
+
+Detecting Down Replicas:
+When a replica receives a request from the client it will broadcast the 
+message to all the other replicas in its view. If the replica that sent the
+broadcast never receives a response from the other replica it declares it dead.
+The very same replica that detected the dead replica will remove that replica from
+its view and broadcast delete view to all replicas in its view. After all replicas 
+should be aware that a specific replica has crashed.
+
+Sharding:
+-Keys are distributed to different shards by hashing keys with md5 and
+ taking the remainder of hashed_key % SHARD_COUNT. Resharding is done by the node that receives the reshard message compiling the entire database, calculating the new shard_ids for each node, dispatches new shard ids, redistributes partitions of the database to each shard, finally throwing away everything except its partition.

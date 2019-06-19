@@ -1,0 +1,4 @@
+Allen Aboytes: Designed and implemented sharding mechanisms, pair programmed to oversee backend refactoring, implemented functionality to pass test cases.
+Will Coates: Designed and implemented the hashing scheme to distribute keys among shards, retrofit Assignment 3 code to fit new specs, debugged.
+Albert Garcia: Refactored Assignment 3 code, created style guide, designed and implemented resharding mechanisms, debugged/pair programmed on remaining parts.
+Shant Narkizian: Had key insight that requests were being improperly buffered, designed and implemented resharding mechanisms, debugged.

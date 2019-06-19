@@ -1,0 +1,71 @@
+==================================================
+Coding Style Guide
+==================================================
+
+==================================================
+HTTP Requests and Responses:
+Requests:
+req_url = "http://" + address + endpoint
+req_data = {'key1': 'value1', 
+        'key2': 'value2', ...}
+resp = requests.type(req_url, json=req_data, timeout = 1)
+then resp will have:
+resp.status_code --> int
+resp.json()      --> dictionary{string:string}
+
+Responses:
+data = {'key1': 'value1', 
+        'key2': 'value2', ...}
+response = Response(json.dumps(data), status = ___)
+...
+return response
+==================================================
+
+==================================================
+GET/PUT/DELETE:
+GET:
+get(key):
+        # perform hashing to figure out which shard key belongs to
+        # straightforward, just look up and return
+        
+PUT:
+# add something to your database and tell everyone else
+put(key, request):
+        # perform hashing to figure out which shard key belongs to
+        # perform the local put
+        ...
+        # check if we need to broadcast
+        try:
+                data = str(request.data)
+                jsobj = json.loads(data)
+                # this returns True if an internal request,
+                # None if it's from a client
+                internal = jsobj.get("internal")
+        except Exception:
+                return None
+        if internal == None:
+                data = {dict with necessary internal data}
+                data.update( {'internal': True})
+                # use request style specified above to 
+                # send to all replicas necessary (in shard or in view, depending)
+                
+DELETE:
+# remove something from your database and tell everyone else
+delete(key, request):
+        # perform hashing to figure out which shard key belongs to
+        # perform the local delete
+        ...
+        # check if we need to broadcast
+        try:
+                data = str(request.data)
+                jsobj = json.loads(data)
+                # this returns True if an internal request,
+                # None if it's from a client
+                internal = jsobj.get("internal")
+        except Exception:
+                return None
+        if internal == None:
+                data = {dict with necessary internal data}
+                data.update( {'internal': True})
+                # use request style specified above to 
+                # send to all replicas necessary (in shard or in view, depending)

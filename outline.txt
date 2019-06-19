@@ -1,0 +1,76 @@
+New Global Data
+
+ENV: SHARD_COUNT - string given by the docker enviornment
+shard_ids = [str(n) for n in range(len(int(SHARD_COUNT)))] - List of strings
+node_id = MY_ADDR.split('.')[-1] - Takes the IP for current node and takes the 
+                                    last digits. Assumes that all ips will have 
+                                    the format 10.10.0.X .
+shard_id = node_id % SHARD_COUNT - Determine the node's shard id during startup. 
+                                    For a node that starts up later and isn't
+                                    given a SHARD_COUNT we need to check for that
+                                    with if SHARD_COUNT == None. Then we don't 
+                                    initialize shard_id and it will be done later.
+shard_members = { "0": ["10.10.0.2:8080", ...],
+                  "1" : ["10.10.0.3:8080", ...]
+                } - Example above is for SHARD_COUNT = 2. Initialized by going through
+                    the VIEW and performing: 
+                    int(MY_ADDR.split('.')[-1]) % SHARD_COUNT
+                    to determine which key node is assigned to which shard. Note if this
+                    node isn't given SHARD_COUNT we will assign it later.
+                    
+ New Endpoints under /key-value-store-shard
+ 
+ /shard-ids - returns list of shards_ids
+ Implemetation: return ','.join(shard_ids)
+ 
+ /node-shard-id - returns shard_id of node you're talking to
+ Implementation: return shard_id
+ 
+ /shard-id-members/<shard_id> - returns the nodes in <shard_id>
+ Implementation: return ','.join(shard_members[<shard_id>])
+ 
+ /shard-id-key-count/<shard_id> - returns number of keys in <shard>
+ Implementation: 1. Look up <shard_id> in shard_members
+                  2. Grab first node returned by shard_members.get(<shard_id>)
+                  3. Send request for len(db) from that node.
+                  4. Return len(db) to client.
+                  
+ /add-member/<shard-id> ... --data {"socket-address": ...} - add the node with socket-address
+                                                              to shard with id <shard_id>.
+                                                               Note this request can be sent
+                                                               to any node and should function.
+Implemetation: 1. Arbitrary node received /add-member/<shard-id> ... --data {"socket-address": ...}
+               2. Arbitrary node updates its shard_members and VIEW with incoming data.
+               3.If that node is in the same shard it sends db, VIEW, shard_members, shard_id 
+                 node defined by socket address via custom put endpoint.
+                 If node is not in the same shard arbitrary node sends VIEW, shard_members, and shard_id
+                 to node defined by socket address via custom put endpoint.
+ 
+ Custom put endpoint: 1. Receives data and assigns it to their respective variables.
+                      2. Next checks if db is empty. If it is empty a get request is sent
+                      a node in the same shard to the custom get endpoint. Then assigns the received 
+                      db to its db.
+                      
+ Custom get endpoint: 1. Gets the request and returns its db, exec_req, buff_req.
+                  
+                         
+/reshard - add a new shard to the existing shards. Then redistributes the node and keys to account
+            for the new shard.
+            
+            
+Tenative Implementation: 1. Get all keys/values from all nodes.
+                          2. Split the keys into groups via hash function
+                         3. Redistribute the existing nodes to new shards along with the new key/values.
+                         
+ 
+ 
+ New Endpoint (name unknown)
+ This new endpoint will serve various sets of state data to replica. This will also serve as debig output.
+ 
+ 
+ TO DO:
+ Make sure endpoints dont error out it SHARD_ID or SHARD_COUNT or SHARD_MEMBERS is None.
+ Test script to test custom get/put and other completed endpoints
+ Complete custom get/put
+ Add hashing to get in put
+ Broadcast to shard instead of VIEW
